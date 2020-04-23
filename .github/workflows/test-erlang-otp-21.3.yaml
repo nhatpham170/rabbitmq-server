@@ -1,5 +1,5 @@
 # https://help.github.com/en/actions/configuring-and-managing-workflows/configuring-a-workflow
-name: OTP v21.3
+name: "Test: Erlang/OTP v21.3"
 on: push
 jobs:
   checks:
@@ -14,7 +14,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CHECK RABBITMQ COMPONENTS
         # https://github.community/t5/GitHub-Actions/How-can-I-set-an-expression-as-an-environment-variable-at/m-p/41804/highlight/true#M4751
         id: ref
@@ -39,7 +39,6 @@ jobs:
           mv rabbit-rabbitmq-deps.mk deps/
           echo "Remove directories not used in the subsequent jobs..."
           rm -fr deps/*/{.git,test}
-          echo "Symlink rabbit dep to rabbitmq-server to address the hard-coding in install-cli-scripts make target..."
       - name: UPLOAD DEPS VERSIONS
         uses: actions/upload-artifact@v2-preview
         with:
@@ -70,7 +69,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -86,8 +85,6 @@ jobs:
           ! test -d ebin || touch ebin/*
           branch_or_tag_name=${GITHUB_REF#refs/*/}
           make eunit base_rmq_ref=master current_rmq_ref=$branch_or_tag_name FULL=
-# To find what ct suites we need to add & in which order:
-# ls test/*SUITE.erl | sort
   ct-amqqueue_backward_compatibility:
     needs: [checks]
     # https://help.github.com/en/actions/reference/context-and-expression-syntax-for-github-actions#contexts
@@ -102,7 +99,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -143,7 +140,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -169,7 +166,7 @@ jobs:
         if: failure()
         with:
           name: ct-backing_queue-logs
-          path: "*-ct-logs-*.tar.gz"
+          path: "*-ct-logs-*.tar.xz"
   ct-channel_interceptor:
     needs: [checks]
     # https://help.github.com/en/actions/reference/context-and-expression-syntax-for-github-actions#contexts
@@ -184,7 +181,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -225,7 +222,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -266,7 +263,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -307,7 +304,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -334,10 +331,10 @@ jobs:
         with:
           name: ct-cluster_rename-logs
           path: "*-ct-logs-*.tar.xz"
-  ct-clustering_management_clustered_2_nodes:
+  ct-clustering_management:
     needs: [checks]
     # https://help.github.com/en/actions/reference/context-and-expression-syntax-for-github-actions#contexts
-    name: ct-clustering_management_clustered_2_nodes
+    name: ct-clustering_management
     runs-on: ubuntu-18.04
     steps:
       - name: CHECKOUT REPOSITORY
@@ -348,7 +345,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -363,7 +360,7 @@ jobs:
         run: |
           branch_or_tag_name=${GITHUB_REF#refs/*/}
           ! test -d ebin || touch ebin/*
-          make ct-clustering_management t=clustered_2_nodes base_rmq_ref=master current_rmq_ref=$branch_or_tag_name FULL=
+          make ct-clustering_management base_rmq_ref=master current_rmq_ref=$branch_or_tag_name FULL=
       - name: ON FAILURE ARCHIVE TESTS LOGS
         if: failure()
         run: |
@@ -373,130 +370,7 @@ jobs:
         uses: actions/upload-artifact@v2-preview
         if: failure()
         with:
-          name: ct-clustering_management_clustered_2_nodes-logs
-          path: "*-ct-logs-*.tar.xz"
-  ct-clustering_management_clustered_4_nodes:
-    needs: [checks]
-    # https://help.github.com/en/actions/reference/context-and-expression-syntax-for-github-actions#contexts
-    name: ct-clustering_management_clustered_4_nodes
-    runs-on: ubuntu-18.04
-    steps:
-      - name: CHECKOUT REPOSITORY
-        uses: actions/checkout@v2
-      # https://github.com/marketplace/actions/setup-elixir
-      - name: CONFIGURE OTP & ELIXIR
-        uses: actions/setup-elixir@v1
-        with:
-          otp-version: 21.3
-          # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
-      - name: CACHE DEPS
-        uses: actions/cache@v1
-        with:
-          path: deps
-          key: otp-21.3_git-${{ github.sha }}_deps
-      - name: CACHE APP MODULES
-        uses: actions/cache@v1
-        with:
-          path: ebin
-          key: otp-21.3_git-${{ github.sha }}_ebin
-      - name: RUN TESTS
-        run: |
-          branch_or_tag_name=${GITHUB_REF#refs/*/}
-          ! test -d ebin || touch ebin/*
-          make ct-clustering_management t=clustered_4_nodes base_rmq_ref=master current_rmq_ref=$branch_or_tag_name FULL=
-      - name: ON FAILURE ARCHIVE TESTS LOGS
-        if: failure()
-        run: |
-          make ct-logs-archive
-      - name: ON FAILURE UPLOAD TESTS LOGS ARTIFACT
-        # https://github.com/marketplace/actions/upload-artifact
-        uses: actions/upload-artifact@v2-preview
-        if: failure()
-        with:
-          name: ct-clustering_management_clustered_4_nodes-logs
-          path: "*-ct-logs-*.tar.xz"
-  ct-clustering_management_unclustered_2_nodes:
-    needs: [checks]
-    # https://help.github.com/en/actions/reference/context-and-expression-syntax-for-github-actions#contexts
-    name: ct-clustering_management_unclustered_2_nodes
-    runs-on: ubuntu-18.04
-    steps:
-      - name: CHECKOUT REPOSITORY
-        uses: actions/checkout@v2
-      # https://github.com/marketplace/actions/setup-elixir
-      - name: CONFIGURE OTP & ELIXIR
-        uses: actions/setup-elixir@v1
-        with:
-          otp-version: 21.3
-          # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
-      - name: CACHE DEPS
-        uses: actions/cache@v1
-        with:
-          path: deps
-          key: otp-21.3_git-${{ github.sha }}_deps
-      - name: CACHE APP MODULES
-        uses: actions/cache@v1
-        with:
-          path: ebin
-          key: otp-21.3_git-${{ github.sha }}_ebin
-      - name: RUN TESTS
-        run: |
-          branch_or_tag_name=${GITHUB_REF#refs/*/}
-          ! test -d ebin || touch ebin/*
-          make ct-clustering_management t=unclustered_2_nodes base_rmq_ref=master current_rmq_ref=$branch_or_tag_name FULL=
-      - name: ON FAILURE ARCHIVE TESTS LOGS
-        if: failure()
-        run: |
-          make ct-logs-archive
-      - name: ON FAILURE UPLOAD TESTS LOGS ARTIFACT
-        # https://github.com/marketplace/actions/upload-artifact
-        uses: actions/upload-artifact@v2-preview
-        if: failure()
-        with:
-          name: ct-clustering_management_unclustered_2_nodes-logs
-          path: rabbit-ct-logs-*.tar.xz
-  ct-clustering_management_unclustered_3_nodes:
-    needs: [checks]
-    # https://help.github.com/en/actions/reference/context-and-expression-syntax-for-github-actions#contexts
-    name: ct-clustering_management_unclustered_3_nodes
-    runs-on: ubuntu-18.04
-    steps:
-      - name: CHECKOUT REPOSITORY
-        uses: actions/checkout@v2
-      # https://github.com/marketplace/actions/setup-elixir
-      - name: CONFIGURE OTP & ELIXIR
-        uses: actions/setup-elixir@v1
-        with:
-          otp-version: 21.3
-          # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
-      - name: CACHE DEPS
-        uses: actions/cache@v1
-        with:
-          path: deps
-          key: otp-21.3_git-${{ github.sha }}_deps
-      - name: CACHE APP MODULES
-        uses: actions/cache@v1
-        with:
-          path: ebin
-          key: otp-21.3_git-${{ github.sha }}_ebin
-      - name: RUN TESTS
-        run: |
-          branch_or_tag_name=${GITHUB_REF#refs/*/}
-          ! test -d ebin || touch ebin/*
-          make ct-clustering_management t=unclustered_3_nodes base_rmq_ref=master current_rmq_ref=$branch_or_tag_name FULL=
-      - name: ON FAILURE ARCHIVE TESTS LOGS
-        if: failure()
-        run: |
-          make ct-logs-archive
-      - name: ON FAILURE UPLOAD TESTS LOGS ARTIFACT
-        # https://github.com/marketplace/actions/upload-artifact
-        uses: actions/upload-artifact@v2-preview
-        if: failure()
-        with:
-          name: ct-clustering_management_unclustered_3_nodes-logs
+          name: ct-clustering_management-logs
           path: "*-ct-logs-*.tar.xz"
   ct-config_schema:
     needs: [checks]
@@ -512,7 +386,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -553,7 +427,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -594,7 +468,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -635,7 +509,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -676,7 +550,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -717,7 +591,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -758,7 +632,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -799,7 +673,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -840,7 +714,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -881,7 +755,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -922,7 +796,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -942,7 +816,7 @@ jobs:
         if: failure()
         run: |
           make ct-logs-archive
-      - name: ON FAILURE UPLOAD TESTS LOGS
+      - name: ON FAILURE UPLOAD TESTS LOGS ARTIFACT
         # https://github.com/marketplace/actions/upload-artifact
         uses: actions/upload-artifact@v2-preview
         if: failure()
@@ -963,7 +837,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -1004,7 +878,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -1045,7 +919,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -1086,7 +960,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -1127,7 +1001,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -1168,7 +1042,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -1209,7 +1083,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -1250,7 +1124,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -1291,7 +1165,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -1332,7 +1206,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -1373,7 +1247,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -1414,7 +1288,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -1455,7 +1329,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -1496,7 +1370,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -1537,7 +1411,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -1578,7 +1452,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -1619,7 +1493,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -1660,7 +1534,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -1701,7 +1575,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -1742,7 +1616,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -1783,7 +1657,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -1824,7 +1698,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -1865,7 +1739,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -1906,7 +1780,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -1947,7 +1821,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -1988,7 +1862,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -2029,7 +1903,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -2070,7 +1944,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -2111,7 +1985,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -2152,7 +2026,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -2193,7 +2067,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -2234,7 +2108,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -2275,7 +2149,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -2316,7 +2190,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -2357,7 +2231,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -2398,7 +2272,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -2439,7 +2313,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -2480,7 +2354,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -2521,7 +2395,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -2562,7 +2436,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -2603,7 +2477,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -2644,7 +2518,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -2685,7 +2559,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -2726,7 +2600,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -2767,7 +2641,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -2808,7 +2682,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -2849,7 +2723,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -2890,7 +2764,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -2931,7 +2805,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -2972,7 +2846,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -3013,7 +2887,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -3054,7 +2928,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -3095,7 +2969,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -3136,7 +3010,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -3177,7 +3051,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -3218,7 +3092,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -3259,7 +3133,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -3300,7 +3174,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -3341,7 +3215,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -3382,7 +3256,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -3423,7 +3297,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -3464,7 +3338,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -3505,7 +3379,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -3546,7 +3420,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -3587,7 +3461,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -3628,7 +3502,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -3669,7 +3543,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -3710,7 +3584,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -3751,7 +3625,7 @@ jobs:
         with:
           otp-version: 21.3
           # https://github.com/elixir-lang/elixir/releases
-          elixir-version: 1.10.2
+          elixir-version: 1.8.0
       - name: CACHE DEPS
         uses: actions/cache@v1
         with:
@@ -3787,10 +3661,7 @@ jobs:
       - ct-channel_operation_timeout
       - ct-cluster
       - ct-cluster_rename
-      - ct-clustering_management_clustered_2_nodes
-      - ct-clustering_management_clustered_4_nodes
-      - ct-clustering_management_unclustered_2_nodes
-      - ct-clustering_management_unclustered_3_nodes
+      - ct-clustering_management
       - ct-config_schema
       - ct-confirms_rejects
       - ct-consumer_timeout
